@@ -1,0 +1,92 @@
+# Application configuration
+spring:
+  application:
+    name: wedding-management
+  devtools:
+    restart:
+      enabled: ${SPRING_DEVTOOLS_RESTART_ENABLED:true}
+    livereload:
+      enabled: ${SPRING_DEVTOOLS_LIVERELOAD_ENABLED:true}
+  datasource:
+    # datasource = thông tin kết nối đến PostgreSQL.
+    # Dùng env vars để dễ đổi giữa local, CI và production mà không sửa code.
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/wedding_management}
+    username: ${DB_USERNAME:wedding_app}
+    password: ${DB_PASSWORD:wedding_password}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    # ddl-auto=validate: Spring chỉ "kiểm tra schema của DB", KHÔNG tự tạo/sửa bảng.
+    # Vì phần tạo/sửa schema đã do Flyway quản lý bằng migration scripts.
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        jdbc:
+          time_zone: UTC
+  flyway:
+    # Flyway sẽ tự chạy các file migration (V1, V2, V3...) khi app startup.
+    enabled: true
+    locations: classpath:db/migration
+    validate-on-migrate: true
+    baseline-on-migrate: false
+  jackson:
+    time-zone: UTC
+    serialization:
+      write-dates-as-timestamps: false
+
+# Server configuration
+server:
+  port: 8082
+
+# Swagger/OpenAPI configuration
+springdoc:
+  api-docs:
+    enabled: ${SPRINGDOC_API_DOCS_ENABLED:true}
+    path: /v3/api-docs
+  cache:
+    disabled: ${SPRINGDOC_CACHE_DISABLED:true}
+  packages-to-scan:
+    - com.uit.weddingmanagement.modules
+  paths-to-match:
+    - /api/**
+  writer-with-order-by-keys: true
+  swagger-ui:
+    enabled: ${SPRINGDOC_SWAGGER_UI_ENABLED:true}
+    path: /swagger-ui.html
+    try-it-out-enabled: true
+    display-request-duration: true
+    operations-sorter: method
+    tags-sorter: alpha
+    doc-expansion: none
+    filter: true
+    default-models-expand-depth: -1
+    disable-swagger-default-url: true
+
+# Management configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+# Logging configuration
+logging:
+  level:
+    root: INFO
+    org.springframework.web: INFO
+    org.hibernate.SQL: INFO
+
+# Application configuration
+app:
+  cors:
+    # Danh sách các domain được phép gọi API của backend (qua browser).
+    allowed-origins:
+      - http://localhost:3000
+  security:
+    jwt:
+      secret: ${JWT_SECRET:change-this-dev-jwt-secret-for-wedding-management-2026}
+      access-token-ttl: ${JWT_ACCESS_TOKEN_TTL:1h}
+      refresh-token-ttl: ${JWT_REFRESH_TOKEN_TTL:7d}
